@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain" xmlns:filescom="http://www.mulesoft.org/schema/mule/filescom"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/filescom http://www.mulesoft.org/schema/mule/filescom/current/mule-filescom.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd">
+	<ms-aichain:config name="MuleSoft_AI_Chain_Config" llmType="OPENAI" configType="Configuration Json" modelName="gpt-4o-mini" doc:name="MuleSoft AI Chain Config" doc:id="55a983bf-d73b-425d-91cc-d95efcce33fe" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]' llmTimeoutUnit="HOURS" />
+	<filescom:config name="Files_com_Config" doc:name="Files.com Config" doc:id="bb56f6b3-1011-4b17-972e-085d940d9ae8" >
+		<filescom:connection apiKey="326f8b626c7da25f721c9ae73823358626a50e7479f0edb45d56b98829c2e8fc" />
+	</filescom:config>
+	<flow name="ai-trainFlow" doc:id="6303aeb3-bc61-4cbd-863c-4dff33d59903" >
+		<scheduler doc:name="Scheduler" doc:id="4a75275c-1829-4355-aeab-9dbe81283613" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="5" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<filescom:list-folders doc:name="Folder - List" doc:id="f9153975-8d5f-49f2-8a70-703263cd8cfe" config-ref="Files_com_Config" path="/SFTP/Koerber/OMS/GPS/in/CUSTOMER_ORDER/NEW_TEST"/>
+		<foreach doc:name="For Each" doc:id="e7450b41-1c54-420c-ac1e-e589bc6241b9" collection="#[payload]">
+			<set-variable value='#["/SFTP/Koerber/OMS/GPS/in/CUSTOMER_ORDER/NEW_TEST/" ++ payload.displayName]' doc:name="Set filePath" doc:id="bfc67cdd-22e4-4b9e-982a-e35661c7ce34" variableName="filePath"/>
+			<filescom:download-file doc:name="File - Download" doc:id="8fb6a14d-abed-4b1b-9b41-cf2e60324e57" config-ref="Files_com_Config" path="#[vars.filePath]"/>
+			<set-variable value="#[payload]" doc:name="orderxml" doc:id="820e0f8d-8168-4501-8dd6-d338386c091c" variableName="orderxml"/>
+			<logger level="INFO" doc:name="Logger" doc:id="15f45626-d835-4a6f-b5c4-b53bf8039395" message="#[payload]"/>
+			<filescom:download-file doc:name="File - Download" doc:id="4621f019-ffe4-4d69-ad2c-1758a9b92ecd" config-ref="Files_com_Config" path='#["/SFTP/Koerber/OMS/GPS/in/CUSTOMER_ORDER/TEST/schemaXSD.xsd"]'/>
+			<set-variable value="#[payload]" doc:name="validateSchema" doc:id="4094dee1-d4b0-49b0-af9c-3513349b6980" variableName="validateSchema"/>
+			<ms-aichain:chat-answer-prompt doc:name="Chat answer prompt" doc:id="c081a097-9510-465f-b725-fe731c836124" config-ref="MuleSoft_AI_Chain_Config">
+				<ms-aichain:prompt ><![CDATA[#["Validate XML " ++ vars.orderxml ++ " with " ++ vars.validateSchema ++ " and give me the response in json format"]]]></ms-aichain:prompt>
+			</ms-aichain:chat-answer-prompt>
+			<logger level="INFO" doc:name="Logger" doc:id="a3a83d07-ea24-4094-b2d3-ce88d4fe7049" message="#[payload]" />
+
+		
+</foreach>
+	</flow>
+</mule>
