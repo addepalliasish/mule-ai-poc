@@ -1,34 +1,184 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain" xmlns:filescom="http://www.mulesoft.org/schema/mule/filescom"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain"
+      xmlns:filescom="http://www.mulesoft.org/schema/mule/filescom"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/filescom http://www.mulesoft.org/schema/mule/filescom/current/mule-filescom.xsd
-http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd">
-	<ms-aichain:config name="MuleSoft_AI_Chain_Config" llmType="OPENAI" configType="Configuration Json" modelName="gpt-4o-mini" doc:name="MuleSoft AI Chain Config" doc:id="55a983bf-d73b-425d-91cc-d95efcce33fe" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]' llmTimeoutUnit="HOURS" />
-	<filescom:config name="Files_com_Config" doc:name="Files.com Config" doc:id="bb56f6b3-1011-4b17-972e-085d940d9ae8" >
-		<filescom:connection apiKey="326f8b626c7da25f721c9ae73823358626a50e7479f0edb45d56b98829c2e8fc" />
-	</filescom:config>
-	<flow name="ai-trainFlow" doc:id="6303aeb3-bc61-4cbd-863c-4dff33d59903" >
-		<scheduler doc:name="Scheduler" doc:id="4a75275c-1829-4355-aeab-9dbe81283613" >
-			<scheduling-strategy >
-				<fixed-frequency frequency="5" timeUnit="MINUTES"/>
-			</scheduling-strategy>
-		</scheduler>
-		<filescom:list-folders doc:name="Folder - List" doc:id="f9153975-8d5f-49f2-8a70-703263cd8cfe" config-ref="Files_com_Config" path="/SFTP/Koerber/OMS/GPS/in/CUSTOMER_ORDER/NEW_TEST"/>
-		<foreach doc:name="For Each" doc:id="e7450b41-1c54-420c-ac1e-e589bc6241b9" collection="#[payload]">
-			<set-variable value='#["/SFTP/Koerber/OMS/GPS/in/CUSTOMER_ORDER/NEW_TEST/" ++ payload.displayName]' doc:name="Set filePath" doc:id="bfc67cdd-22e4-4b9e-982a-e35661c7ce34" variableName="filePath"/>
-			<filescom:download-file doc:name="File - Download" doc:id="8fb6a14d-abed-4b1b-9b41-cf2e60324e57" config-ref="Files_com_Config" path="#[vars.filePath]"/>
-			<set-variable value="#[payload]" doc:name="orderxml" doc:id="820e0f8d-8168-4501-8dd6-d338386c091c" variableName="orderxml"/>
-			<logger level="INFO" doc:name="Logger" doc:id="15f45626-d835-4a6f-b5c4-b53bf8039395" message="#[payload]"/>
-			<filescom:download-file doc:name="File - Download" doc:id="4621f019-ffe4-4d69-ad2c-1758a9b92ecd" config-ref="Files_com_Config" path='#["/SFTP/Koerber/OMS/GPS/in/CUSTOMER_ORDER/TEST/schemaXSD.xsd"]'/>
-			<set-variable value="#[payload]" doc:name="validateSchema" doc:id="4094dee1-d4b0-49b0-af9c-3513349b6980" variableName="validateSchema"/>
-			<ms-aichain:chat-answer-prompt doc:name="Chat answer prompt" doc:id="c081a097-9510-465f-b725-fe731c836124" config-ref="MuleSoft_AI_Chain_Config">
-				<ms-aichain:prompt ><![CDATA[#["Validate XML " ++ vars.orderxml ++ " with " ++ vars.validateSchema ++ " and give me the response in json format"]]]></ms-aichain:prompt>
-			</ms-aichain:chat-answer-prompt>
-			<logger level="INFO" doc:name="Logger" doc:id="a3a83d07-ea24-4094-b2d3-ce88d4fe7049" message="#[payload]" />
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 
-		
-</foreach>
-	</flow>
+  <ms-aichain:config name="MuleSoft_AI_Chain_Config"
+                     llmType="OPENAI"
+                     configType="Configuration Json"
+                     modelName="gpt-4o-mini"
+                     doc:name="MuleSoft AI Chain Config"
+                     doc:id="7bc307f6-8dd8-4180-b54e-283cf5987739"
+                     filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]'
+                     llmTimeoutUnit="HOURS" />
+
+  <filescom:config name="Files_com_Config" doc:name="Files.com Config" doc:id="69125ca9-55f4-43e6-9504-0b126e8fd590">
+    <filescom:connection apiKey="326f8b626c7da25f721c9ae73823358626a50e7479f0edb45d56b98829c2e8fc" />
+  </filescom:config>
+
+  <flow name="ai-trainFlow" doc:id="2a4f0669-1402-40c4-a2b3-0fba1aaebc53">
+    <scheduler doc:name="Scheduler" doc:id="de16773b-507d-4709-bcd0-9e86cb443ab5">
+      <scheduling-strategy>
+        <fixed-frequency frequency="5" timeUnit="MINUTES"/>
+      </scheduling-strategy>
+    </scheduler>
+
+    <filescom:download-file doc:name="File - Download" doc:id="5e3e0e5b-96a5-4e03-b0f1-6c2914ba3a2d" config-ref="Files_com_Config" path='#["/SFTP/Koerber/OMS/GPS/in/CUSTOMER_ORDER/TEST/schemaXSD.xsd"]' />
+		<set-variable value="#[payload as String {encoding: 'UTF-8'}]" doc:name="validateSchema" doc:id="566600dd-7fe6-4926-9abc-645d6814c338" variableName="validateSchema" />
+		<filescom:list-folders doc:name="Folder - List"
+                           doc:id="1c0cce3d-f65c-4143-8804-604f0db5b450"
+                           config-ref="Files_com_Config"
+                           path="/SFTP/Koerber/OMS/GPS/in/CUSTOMER_ORDER/NEW_TEST"/>
+
+    <foreach doc:name="For Each"
+             doc:id="cf9f4ac9-f085-4b2a-a9c7-c75f3f5c80c2"
+             collection="#[payload]">
+
+      <set-variable value='#["/SFTP/Koerber/OMS/GPS/in/CUSTOMER_ORDER/NEW_TEST/" ++ payload.displayName]'
+                    doc:name="Set filePath"
+                    doc:id="c71480d9-3c3d-4878-abdc-dac1cc4a5ed3"
+                    variableName="filePath"/>
+
+      <filescom:download-file doc:name="File - Download"
+                              doc:id="426e3737-58de-40ce-93a9-67aa244e3fbe"
+                              config-ref="Files_com_Config"
+                              path="#[vars.filePath]"/>
+
+      <set-variable value="#[payload as String {encoding: 'UTF-8'}]"
+                    doc:name="orderxml"
+                    doc:id="3888a36a-d09c-4e40-8dc2-d5b47f451946"
+                    variableName="orderxml"/>
+
+      <logger level="INFO"
+              doc:name="Logger"
+              doc:id="7d6b5f80-b820-4904-8b1b-33cd0a4e00f2"
+              message="#[payload]"/>
+
+      <!-- UPDATED PROMPT HERE -->
+      <ms-aichain:chat-answer-prompt doc:name="Chat answer prompt"
+                                     doc:id="0d2b4e1b-2755-4d20-8d90-f9f63461a647"
+                                     config-ref="MuleSoft_AI_Chain_Config">
+       <ms-aichain:prompt><![CDATA[#["Validate the XML against the XSD.
+Return ONLY a JSON object.
+Do NOT include any introduction, explanation, or summary text.
+
+If validation FAILS:
+- Return ONLY the elements that failed validation.
+- Include element name and error message.
+- Do NOT include valid elements.
+
+If validation PASSES:
+- Return an empty JSON object {}.
+
+Output format MUST be exactly:
+
+{
+  \"issues\": [
+    {
+      \"element\": \"<elementName>\",
+      \"message\": \"<validation error>\"
+    }
+  ]
+}
+
+XML:
+" ++ vars.orderxml ++ "
+
+XSD:
+" ++ vars.validateSchema]]]>cd 
+</ms-aichain:prompt>
+
+      </ms-aichain:chat-answer-prompt>
+      <!-- [STUDIO:"Chat answer prompt"]<ms-aichain:chat-answer-prompt doc:name="Chat answer prompt"
+                                     doc:id="60cd883f-1da1-4cd4-8d68-92d1e97ace15"
+                                     config-ref="MuleSoft_AI_Chain_Config">
+	<ms-aichain:prompt><![CDATA[
+You validate the given XML against the given XSD.
+
+Return ONLY valid JSON:
+{"errors":[...&#93;}
+No markdown, no extra keys, no explanations.
+
+CRITICAL RULES (must follow):
+1) Do NOT invent or assume elements/paths. Use ONLY element paths that appear explicitly in the XSD.
+2) Do NOT report "Missing required element" unless you verify that the element name is absent in the XML text.
+3) Use the EXACT element hierarchy from the XSD. In particular:
+   - PhoneNumber and EmailAddress exist ONLY under:
+     /Orders/OrderCollection/BillingAddress/*
+     /Orders/OrderCollection/Order/ShippingAddress/*
+4) Ignore xs:any (processContents="skip") completely.
+5) Validate these constraints from XSD:
+   - Name40Type: maxLength 40
+   - CompanyNameType: maxLength 75
+   - AddressLineType: maxLength 75
+   - CityType: maxLength 40
+   - PhoneNumberType: pattern [0-9&#93;{10,12}
+   - CountryCodeType: length 2
+   - EmailType: maxLength 200 and pattern [^@&#93;+@[^@&#93;+\.[^@&#93;+
+   - CustomerIdType: maxLength 15
+   - StateNameType: must be one of the enumerations in XSD
+   - SpeedFcShippingCodeType: must be one of the enumerations in XSD
+6) Structure rules from XSD that MUST be present:
+   /Orders
+   /Orders/OrderCollection
+   /Orders/OrderCollection/OrderNumber
+   /Orders/OrderCollection/OrderCode
+   /Orders/OrderCollection/CreateDatetime
+   /Orders/OrderCollection/SiteId
+   /Orders/OrderCollection/BillingAddress
+   /Orders/OrderCollection/CustomerId
+   /Orders/OrderCollection/Order
+   /Orders/OrderCollection/Order/ShippingAddress
+   /Orders/OrderCollection/Order/SpeedFCShippingCode
+   /Orders/OrderCollection/Order/Item (minOccurs=1)
+7) Only output errors you can specifically tie to one of the above constraints or missing structure.
+
+Output error strings:
+- One line per error
+- Include XPath + violated constraint + actual value (or length)
+
+XML:
+<<<XML
+#[vars.orderxml&#93;
+XML
+
+XSD:
+<<<XSD
+#[vars.validateSchema&#93;
+XSD
+&#93;&#93;></ms-aichain:prompt>
+
+
+
+</ms-aichain:chat-answer-prompt> [STUDIO] -->
+	
+      <ee:transform doc:name="Transform Message" doc:id="ccb07501-530a-40bb-b2e6-97a90e72746d" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var obj = read(payload.response, "application/json")
+---
+obj update {
+  case .issues -> obj.issues map (i) ->
+    i update {
+      case .element -> (i.element replace /[<>]/ with "")
+    }
+}
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO"
+              doc:name="Logger"
+              doc:id="9f90b227-07c3-4e62-91af-87dedde8ddfe"
+              message="#[payload]" />
+
+    </foreach>
+  </flow>
 </mule>
