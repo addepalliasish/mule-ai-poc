@@ -93,7 +93,7 @@ XML:
 " ++ vars.orderxml ++ "
 
 XSD:
-" ++ vars.orderXsd]cd 
+" ++ vars.orderXsd]
 ]]>cd 
 </ms-aichain:prompt>
 
