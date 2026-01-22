@@ -30,8 +30,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
       </scheduling-strategy>
     </scheduler>
 
-    <filescom:download-file doc:name="File - Download" doc:id="5e3e0e5b-96a5-4e03-b0f1-6c2914ba3a2d" config-ref="Files_com_Config" path='#["/SFTP/Koerber/OMS/GPS/in/CUSTOMER_ORDER/TEST/schemaXSD.xsd"]' />
-		<set-variable value="#[payload as String {encoding: 'UTF-8'}]" doc:name="validateSchema" doc:id="566600dd-7fe6-4926-9abc-645d6814c338" variableName="validateSchema" />
+    <!-- [STUDIO:"File - Download"]<filescom:download-file doc:name="File - Download" doc:id="5e3e0e5b-96a5-4e03-b0f1-6c2914ba3a2d" config-ref="Files_com_Config" path='#["/SFTP/Koerber/OMS/GPS/in/CUSTOMER_ORDER/TEST/schemaXSD.xsd"&#93;' /> [STUDIO] -->
+		<set-variable value="#[readUrl('classpath://order.xsd', 'text/plain')]" doc:name="Set Order Xsd" doc:id="022c2744-13b7-4cfc-990c-d9e88e773a61" variableName="orderXsd"/>
+		<!-- [STUDIO:"validateSchema"]<set-variable value="#[payload as String {encoding: 'UTF-8'}&#93;" doc:name="validateSchema" doc:id="566600dd-7fe6-4926-9abc-645d6814c338" variableName="validateSchema" /> [STUDIO] -->
 		<filescom:list-folders doc:name="Folder - List"
                            doc:id="1c0cce3d-f65c-4143-8804-604f0db5b450"
                            config-ref="Files_com_Config"
@@ -92,7 +93,8 @@ XML:
 " ++ vars.orderxml ++ "
 
 XSD:
-" ++ vars.validateSchema]]]>cd 
+" ++ vars.orderXsd]cd 
+]]>cd 
 </ms-aichain:prompt>
 
       </ms-aichain:chat-answer-prompt>

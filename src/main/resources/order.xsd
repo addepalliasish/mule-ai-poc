@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+
+  <!-- ===================== -->
+  <!-- Simple Types -->
+  <!-- ===================== -->
+
+  <xs:simpleType name="Name40Type">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="40"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="CompanyNameType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="75"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="AddressLineType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="75"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="CityType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="40"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="PhoneNumberType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9]{10,12}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="CountryCodeType">
+    <xs:restriction base="xs:string">
+      <xs:length value="2"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="EmailType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="200"/>
+      <xs:pattern value="[^@]+@[^@]+\.[^@]+"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="CustomerIdType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="15"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- ===================== -->
+  <!-- Enumerations -->
+  <!-- ===================== -->
+
+  <xs:simpleType name="StateNameType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Alabama"/>
+      <xs:enumeration value="Alaska"/>
+      <xs:enumeration value="Arizona"/>
+      <xs:enumeration value="Arkansas"/>
+      <xs:enumeration value="California"/>
+      <xs:enumeration value="Colorado"/>
+      <xs:enumeration value="Connecticut"/>
+      <xs:enumeration value="Delaware"/>
+      <xs:enumeration value="District of Columbia"/>
+      <xs:enumeration value="Florida"/>
+      <xs:enumeration value="Georgia"/>
+      <xs:enumeration value="Guam"/>
+      <xs:enumeration value="Hawaii"/>
+      <xs:enumeration value="Idaho"/>
+      <xs:enumeration value="Illinois"/>
+      <xs:enumeration value="Indiana"/>
+      <xs:enumeration value="Iowa"/>
+      <xs:enumeration value="Kansas"/>
+      <xs:enumeration value="Kentucky"/>
+      <xs:enumeration value="Louisiana"/>
+      <xs:enumeration value="Maine"/>
+      <xs:enumeration value="Maryland"/>
+      <xs:enumeration value="Massachusetts"/>
+      <xs:enumeration value="Michigan"/>
+      <xs:enumeration value="Minnesota"/>
+      <xs:enumeration value="Mississippi"/>
+      <xs:enumeration value="Missouri"/>
+      <xs:enumeration value="Montana"/>
+      <xs:enumeration value="Nebraska"/>
+      <xs:enumeration value="Nevada"/>
+      <xs:enumeration value="New Hampshire"/>
+      <xs:enumeration value="New Jersey"/>
+      <xs:enumeration value="New Mexico"/>
+      <xs:enumeration value="New York"/>
+      <xs:enumeration value="North Carolina"/>
+      <xs:enumeration value="North Dakota"/>
+      <xs:enumeration value="Northern Mariana Islands"/>
+      <xs:enumeration value="Ohio"/>
+      <xs:enumeration value="Oklahoma"/>
+      <xs:enumeration value="Oregon"/>
+      <xs:enumeration value="Pennsylvania"/>
+      <xs:enumeration value="Puerto Rico"/>
+      <xs:enumeration value="Rhode Island"/>
+      <xs:enumeration value="South Carolina"/>
+      <xs:enumeration value="South Dakota"/>
+      <xs:enumeration value="Tennessee"/>
+      <xs:enumeration value="Texas"/>
+      <xs:enumeration value="Utah"/>
+      <xs:enumeration value="Vermont"/>
+      <xs:enumeration value="Virgin Islands"/>
+      <xs:enumeration value="Virginia"/>
+      <xs:enumeration value="Washington"/>
+      <xs:enumeration value="West Virginia"/>
+      <xs:enumeration value="Wisconsin"/>
+      <xs:enumeration value="Wyoming"/>
+      <xs:enumeration value="American Samoa"/>
+      <xs:enumeration value="Micronesia"/>
+      <xs:enumeration value="Marshall Islands"/>
+      <xs:enumeration value="Palau"/>
+      <xs:enumeration value="Armed Forces Americas"/>
+      <xs:enumeration value="Armed Forces Europe"/>
+      <xs:enumeration value="Armed Forces Pacific"/>
+      <xs:enumeration value="Alberta"/>
+      <xs:enumeration value="British Columbia"/>
+      <xs:enumeration value="Manitoba"/>
+      <xs:enumeration value="New Brunswick"/>
+      <xs:enumeration value="Newfoundland and Labrador"/>
+      <xs:enumeration value="Northwest Territories"/>
+      <xs:enumeration value="Nova Scotia"/>
+      <xs:enumeration value="Nunavut"/>
+      <xs:enumeration value="Ontario"/>
+      <xs:enumeration value="Prince Edward Island"/>
+      <xs:enumeration value="Quebec"/>
+      <xs:enumeration value="Saskatchewan"/>
+      <xs:enumeration value="Yukon"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="SpeedFcShippingCodeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="SMRT"/>
+      <xs:enumeration value="FGHM"/>
+      <xs:enumeration value="USGA"/>
+      <xs:enumeration value="FEG"/>
+      <xs:enumeration value="FSP"/>
+      <xs:enumeration value="FXPX"/>
+      <xs:enumeration value="UPM"/>
+      <xs:enumeration value="PB1"/>
+      <xs:enumeration value="FDIP"/>
+      <xs:enumeration value="UFCM"/>
+      <xs:enumeration value="FEPO"/>
+      <xs:enumeration value="FEES"/>
+      <xs:enumeration value="FEGD"/>
+      <xs:enumeration value="FREIGHT"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- ===================== -->
+  <!-- Root -->
+  <!-- ===================== -->
+
+  <xs:element name="Orders">
+    <xs:complexType>
+      <xs:sequence>
+
+        <xs:element name="OrderCollection">
+          <xs:complexType>
+            <xs:sequence>
+
+              <xs:element name="OrderNumber" type="xs:string"/>
+              <xs:element name="OrderCode" type="xs:string"/>
+              <xs:element name="CreateDatetime" type="xs:dateTime"/>
+              <xs:element name="SiteId" type="xs:string"/>
+
+              <!-- BillingAddress is MANDATORY + VALIDATED -->
+              <xs:element name="BillingAddress" minOccurs="1">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="FirstName" type="Name40Type"/>
+                    <xs:element name="LastName" type="Name40Type"/>
+                    <xs:element name="CompanyName" type="CompanyNameType" minOccurs="0"/>
+                    <xs:element name="EmailAddress" type="EmailType"/>
+                    <xs:element name="AddressLine1" type="AddressLineType"/>
+                    <xs:element name="AddressLine2" type="AddressLineType" minOccurs="0"/>
+                    <xs:element name="City" type="CityType"/>
+                    <xs:element name="State" type="StateNameType"/>
+                    <xs:element name="PhoneNumber" type="PhoneNumberType"/>
+                    <xs:element name="CountryCode" type="CountryCodeType"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+
+              <!-- CustomerId VALIDATED -->
+              <xs:element name="CustomerId" type="CustomerIdType"/>
+
+              <!-- Order is REQUIRED, but we only validate SpeedFCShippingCode inside it -->
+              <xs:element name="Order" minOccurs="1" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+
+                    <!-- Allow any fields before -->
+                    <xs:any minOccurs="0" maxOccurs="unbounded" processContents="skip"/>
+
+                    <!-- Validate SpeedFCShippingCode (required) -->
+                    <xs:element name="SpeedFCShippingCode" type="SpeedFcShippingCodeType"/>
+
+                    <!-- Allow any fields after (including Item with any content) -->
+                    <xs:any minOccurs="0" maxOccurs="unbounded" processContents="skip"/>
+
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+
+              <!-- Allow anything else after Order if present -->
+              <xs:any minOccurs="0" maxOccurs="unbounded" processContents="skip"/>
+
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>
