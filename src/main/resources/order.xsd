@@ -200,22 +200,11 @@
               <xs:element name="Order" minOccurs="1" maxOccurs="unbounded">
                 <xs:complexType>
                   <xs:sequence>
-
-                    <!-- Allow any fields before -->
-                    <xs:any minOccurs="0" maxOccurs="unbounded" processContents="skip"/>
-
                     <!-- Validate SpeedFCShippingCode (required) -->
                     <xs:element name="SpeedFCShippingCode" type="SpeedFcShippingCodeType"/>
-
-                    <!-- Allow any fields after (including Item with any content) -->
-                    <xs:any minOccurs="0" maxOccurs="unbounded" processContents="skip"/>
-
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
-
-              <!-- Allow anything else after Order if present -->
-              <xs:any minOccurs="0" maxOccurs="unbounded" processContents="skip"/>
 
             </xs:sequence>
           </xs:complexType>

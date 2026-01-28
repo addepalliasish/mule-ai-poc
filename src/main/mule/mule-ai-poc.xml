@@ -29,10 +29,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
         <fixed-frequency frequency="5" timeUnit="MINUTES"/>
       </scheduling-strategy>
     </scheduler>
-
-    <!-- [STUDIO:"File - Download"]<filescom:download-file doc:name="File - Download" doc:id="5e3e0e5b-96a5-4e03-b0f1-6c2914ba3a2d" config-ref="Files_com_Config" path='#["/SFTP/Koerber/OMS/GPS/in/CUSTOMER_ORDER/TEST/schemaXSD.xsd"&#93;' /> [STUDIO] -->
 		<set-variable value="#[readUrl('classpath://order.xsd', 'text/plain')]" doc:name="Set Order Xsd" doc:id="022c2744-13b7-4cfc-990c-d9e88e773a61" variableName="orderXsd"/>
-		<!-- [STUDIO:"validateSchema"]<set-variable value="#[payload as String {encoding: 'UTF-8'}&#93;" doc:name="validateSchema" doc:id="566600dd-7fe6-4926-9abc-645d6814c338" variableName="validateSchema" /> [STUDIO] -->
 		<filescom:list-folders doc:name="Folder - List"
                            doc:id="1c0cce3d-f65c-4143-8804-604f0db5b450"
                            config-ref="Files_com_Config"
@@ -52,7 +49,16 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
                               config-ref="Files_com_Config"
                               path="#[vars.filePath]"/>
 
-      <set-variable value="#[payload as String {encoding: 'UTF-8'}]"
+      <ee:transform doc:name="Transform Message" doc:id="917824e8-d2b8-4b21-b4e8-a869ca8ffb23" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+var xmlStr = (payload as Binary) as String {encoding: "UTF-8"}
+---
+xmlStr replace /xsi:noNamespaceSchemaLocation="[^"]*"/ with ""]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<set-variable value="#[payload]"
                     doc:name="orderxml"
                     doc:id="3888a36a-d09c-4e40-8dc2-d5b47f451946"
                     variableName="orderxml"/>
@@ -63,103 +69,29 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
               message="#[payload]"/>
 
       <!-- UPDATED PROMPT HERE -->
-      <ms-aichain:chat-answer-prompt doc:name="Chat answer prompt"
-                                     doc:id="0d2b4e1b-2755-4d20-8d90-f9f63461a647"
-                                     config-ref="MuleSoft_AI_Chain_Config">
-       <ms-aichain:prompt><![CDATA[#["Validate the XML against the XSD.
-Return ONLY a JSON object.
-Do NOT include any introduction, explanation, or summary text.
+      <ms-aichain:chat-answer-prompt doc:name="Chat answer prompt" config-ref="MuleSoft_AI_Chain_Config">
+  <ms-aichain:prompt><![CDATA[#[
+  "You are validating XML against an XSD.\n" ++
+  "Your response MUST be valid JSON and NOTHING ELSE.\n" ++
+  "Do NOT use markdown, code fences, backticks, or explanations.\n" ++
+  "Do NOT include any text before or after the JSON.\n\n" ++
 
-If validation FAILS:
-- Return ONLY the elements that failed validation.
-- Include element name and error message.
-- Do NOT include valid elements.
+  "Validation rules:\n" ++
+  "- Only include errors where you can quote the exact XML value.\n" ++
+  "- Ignore sequence or unexpected-element errors.\n" ++
+  "- Ignore elements not defined in the XSD.\n" ++
+  "- For length, maxLength, or minLength violations, include actualLength as an integer.\n" ++
+  "- For enumeration violations, include the invalid value.\n\n" ++
 
-If validation PASSES:
-- Return an empty JSON object {}.
+  "Output format (EXACTLY):\n" ++
+  "{\"issues\":[{\"element\":\"<name>\",\"value\":\"<xmlValue>\",\"message\":\"<error>\"}]}\n" ++
+  "If there are no issues, output exactly: {}\n\n" ++
 
-Output format MUST be exactly:
-
-{
-  \"issues\": [
-    {
-      \"element\": \"<elementName>\",
-      \"message\": \"<validation error>\"
-    }
-  ]
-}
-
-XML:
-" ++ vars.orderxml ++ "
-
-XSD:
-" ++ vars.orderXsd]
-]]>cd 
-</ms-aichain:prompt>
-
-      </ms-aichain:chat-answer-prompt>
-      <!-- [STUDIO:"Chat answer prompt"]<ms-aichain:chat-answer-prompt doc:name="Chat answer prompt"
-                                     doc:id="60cd883f-1da1-4cd4-8d68-92d1e97ace15"
-                                     config-ref="MuleSoft_AI_Chain_Config">
-	<ms-aichain:prompt><![CDATA[
-You validate the given XML against the given XSD.
-
-Return ONLY valid JSON:
-{"errors":[...&#93;}
-No markdown, no extra keys, no explanations.
-
-CRITICAL RULES (must follow):
-1) Do NOT invent or assume elements/paths. Use ONLY element paths that appear explicitly in the XSD.
-2) Do NOT report "Missing required element" unless you verify that the element name is absent in the XML text.
-3) Use the EXACT element hierarchy from the XSD. In particular:
-   - PhoneNumber and EmailAddress exist ONLY under:
-     /Orders/OrderCollection/BillingAddress/*
-     /Orders/OrderCollection/Order/ShippingAddress/*
-4) Ignore xs:any (processContents="skip") completely.
-5) Validate these constraints from XSD:
-   - Name40Type: maxLength 40
-   - CompanyNameType: maxLength 75
-   - AddressLineType: maxLength 75
-   - CityType: maxLength 40
-   - PhoneNumberType: pattern [0-9&#93;{10,12}
-   - CountryCodeType: length 2
-   - EmailType: maxLength 200 and pattern [^@&#93;+@[^@&#93;+\.[^@&#93;+
-   - CustomerIdType: maxLength 15
-   - StateNameType: must be one of the enumerations in XSD
-   - SpeedFcShippingCodeType: must be one of the enumerations in XSD
-6) Structure rules from XSD that MUST be present:
-   /Orders
-   /Orders/OrderCollection
-   /Orders/OrderCollection/OrderNumber
-   /Orders/OrderCollection/OrderCode
-   /Orders/OrderCollection/CreateDatetime
-   /Orders/OrderCollection/SiteId
-   /Orders/OrderCollection/BillingAddress
-   /Orders/OrderCollection/CustomerId
-   /Orders/OrderCollection/Order
-   /Orders/OrderCollection/Order/ShippingAddress
-   /Orders/OrderCollection/Order/SpeedFCShippingCode
-   /Orders/OrderCollection/Order/Item (minOccurs=1)
-7) Only output errors you can specifically tie to one of the above constraints or missing structure.
-
-Output error strings:
-- One line per error
-- Include XPath + violated constraint + actual value (or length)
-
-XML:
-<<<XML
-#[vars.orderxml&#93;
-XML
-
-XSD:
-<<<XSD
-#[vars.validateSchema&#93;
-XSD
-&#93;&#93;></ms-aichain:prompt>
-
-
-
-</ms-aichain:chat-answer-prompt> [STUDIO] -->
+  "XML:\n" ++ vars.orderxml ++ "\n\n" ++
+  "XSD:\n" ++ vars.orderXsd
+]
+]]></ms-aichain:prompt>
+</ms-aichain:chat-answer-prompt>
 	
       <ee:transform doc:name="Transform Message" doc:id="ccb07501-530a-40bb-b2e6-97a90e72746d" >
 				<ee:message >
