@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+<mule xmlns:xml-module="http://www.mulesoft.org/schema/mule/xml-module"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
       xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain"
       xmlns:filescom="http://www.mulesoft.org/schema/mule/filescom"
       xmlns="http://www.mulesoft.org/schema/mule/core"
-      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/filescom http://www.mulesoft.org/schema/mule/filescom/current/mule-filescom.xsd
 http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/xml-module http://www.mulesoft.org/schema/mule/xml-module/current/mule-xml-module.xsd">
 
   <ms-aichain:config name="MuleSoft_AI_Chain_Config"
                      llmType="OPENAI"
@@ -57,16 +58,18 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
                     doc:id="3888a36a-d09c-4e40-8dc2-d5b47f451946"
                     variableName="orderxml"/>
 
-      <logger level="INFO"
+      <flow-ref doc:name="Flow Reference" doc:id="8aac4d4b-b2b4-4df6-9703-b5c2a69b35fa" name="mule-ai-pocFlow" />
+			<logger level="INFO" doc:name="Logger" doc:id="49c107a8-1e50-408d-bcb4-57144a504e86" message="#[vars.validationError]"/>
+			<logger level="INFO"
               doc:name="Logger"
               doc:id="7d6b5f80-b820-4904-8b1b-33cd0a4e00f2"
               message="#[payload]"/>
 
       <!-- UPDATED PROMPT HERE -->
-      <ms-aichain:chat-answer-prompt doc:name="Chat answer prompt"
+      <!-- [STUDIO:"Chat answer prompt"]<ms-aichain:chat-answer-prompt doc:name="Chat answer prompt"
                                      doc:id="0d2b4e1b-2755-4d20-8d90-f9f63461a647"
                                      config-ref="MuleSoft_AI_Chain_Config">
-       <ms-aichain:prompt><![CDATA[#["Validate the XML against the XSD.
+       <ms-aichain:prompt><![CDATA[#[#["Validate the XML against the XSD.
 Return ONLY a JSON object.
 Do NOT include any introduction, explanation, or summary text.
 
@@ -86,23 +89,81 @@ Output format MUST be exactly:
       \"element\": \"<elementName>\",
       \"message\": \"<validation error>\"
     }
-  ]
+  &#93;
 }
 
 XML:
 " ++ vars.orderxml ++ "
 
 XSD:
-" ++ vars.orderXsd]
-]]>cd 
+" ++ vars.orderXsd&#93;
+cdcdcd&#93;&#93;&#93;>cd 
 </ms-aichain:prompt>
 
-      </ms-aichain:chat-answer-prompt>
-      <!-- [STUDIO:"Chat answer prompt"]<ms-aichain:chat-answer-prompt doc:name="Chat answer prompt"
+      </ms-aichain:chat-answer-prompt> [STUDIO] -->
+      <!-- [STUDIO:"Chat answer prompt1"]<ms-aichain:chat-answer-prompt doc:name="Chat answer prompt1" doc:id="e5c9114e-7707-495d-b49c-b2982366b452" config-ref="MuleSoft_AI_Chain_Config">
+				<ms-aichain:prompt><![CDATA[#["Validate the XML against the XSD.
+Provide a sentence describing the issue. 
+
+Output format MUST be exactly:
+
+{
+  \"issues\": [
+    {
+      \"element\": \"<elementName>\",
+      \"message\": \"<validation error>\"
+    }
+  &#93;
+}
+
+XML:
+" ++ vars.orderxml ++ "
+
+XSD:
+" ++ vars.orderXsd&#93;
+&#93;&#93;></ms-aichain:prompt>
+			</ms-aichain:chat-answer-prompt> [STUDIO] -->
+			<ms-aichain:chat-answer-prompt doc:name="Chat answer prompt1" doc:id="9f5bcf22-fb50-46bc-8619-f59b640653f3" config-ref="MuleSoft_AI_Chain_Config">
+				<ms-aichain:prompt><![CDATA[#["Validate the XML against the Validation Error.
+Return ONLY a JSON object.
+Do NOT include any introduction, explanation, or summary text.
+
+For the validation Error:
+- Include element name and error message.
+
+Output format MUST be exactly:
+
+{
+  \"issues\": [
+    {
+      \"element\": \"<elementName>\",
+      \"message\": \"<validation error>\"
+    }
+  ]
+}
+
+XML:
+" ++ vars.orderxml ++ "
+
+ValidationError:
+" ++ vars.validationError]
+]]></ms-aichain:prompt>
+			</ms-aichain:chat-answer-prompt>
+			<!-- [STUDIO:"Chat answer prompt"]<ms-aichain:chat-answer-prompt doc:name="Chat answer prompt" doc:id="79627cae-ab13-4680-88c5-49c19dc26c05" config-ref="MuleSoft_AI_Chain_Config">
+				<ms-aichain:prompt ><![CDATA[#["
+Take the following Order XML and compare it with the validation error. 
+Generate one concise sentence explaining what the issue is with the file.
+
+Order XML:
+" ++ vars.orderxml ++ "
+
+Validation Error:
+" ++ vars.validationError&#93;&#93;&#93;></ms-aichain:prompt>
+			</ms-aichain:chat-answer-prompt> [STUDIO] -->
+			<!-- [STUDIO:"Chat answer prompt"]<ms-aichain:chat-answer-prompt doc:name="Chat answer prompt"
                                      doc:id="60cd883f-1da1-4cd4-8d68-92d1e97ace15"
                                      config-ref="MuleSoft_AI_Chain_Config">
-	<ms-aichain:prompt><![CDATA[
-You validate the given XML against the given XSD.
+	<ms-aichain:prompt><![CDATA[#[You validate the given XML against the given XSD.
 
 Return ONLY valid JSON:
 {"errors":[...&#93;}
@@ -154,8 +215,7 @@ XML
 XSD:
 <<<XSD
 #[vars.validateSchema&#93;
-XSD
-&#93;&#93;></ms-aichain:prompt>
+XSD&#93;&#93;&#93;></ms-aichain:prompt>
 
 
 
@@ -183,4 +243,158 @@ obj update {
 
     </foreach>
   </flow>
+	<flow name="mule-ai-pocFlow" doc:id="a42dd0dd-e6d5-451c-bcb8-fc9012fcb984" >
+		<set-variable value='""' doc:name="Set Variable" doc:id="3654f564-17b6-4be5-90e5-0b407f8c01c1" variableName="validationError"/>
+		<xml-module:validate-schema doc:name="Validate schema" doc:id="75a65888-2c6c-45e1-8c4e-da904672caf3" >
+			<xml-module:schema-contents >
+				<xml-module:schema-content schemaName="s1" >
+					<xml-module:schema-text ><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<!--Created with Liquid Studio (Trial) (https://www.liquid-technologies.com)-->
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="Orders">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="OrderCollection" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="OrderNumber" type="xs:unsignedInt" minOccurs="0" />
+                            <xs:element name="OrderCode" type="xs:unsignedLong" minOccurs="0" />
+                            <xs:element name="CreateDatetime" type="xs:dateTime" minOccurs="0" />
+                            <xs:element name="SiteId" type="xs:unsignedByte" minOccurs="0" />
+                            <xs:element name="BillingAddress" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="FirstName" type="xs:string" minOccurs="0" />
+                                        <xs:element name="LastName" minOccurs="0">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:maxLength value="40" />
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element name="CompanyName" minOccurs="0" />
+                                        <xs:element name="EmailAddress" type="xs:string" minOccurs="0" />
+                                        <xs:element name="AddressLine1" type="xs:string" minOccurs="0" />
+                                        <xs:element name="AddressLine2" minOccurs="0" />
+                                        <xs:element name="City" type="xs:string" minOccurs="0" />
+                                        <xs:element name="State" type="xs:string" minOccurs="0" />
+                                        <xs:element name="PhoneNumber" type="xs:unsignedLong" minOccurs="0" />
+                                        <xs:element name="CountryCode" type="xs:string" minOccurs="0" />
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="CustomerId" type="xs:string" minOccurs="0" />
+                            <xs:element name="EmailPreferenceFlag" type="xs:boolean" minOccurs="0" />
+                            <xs:element name="GrandDiscountTotal" type="xs:unsignedByte" minOccurs="0" />
+                            <xs:element name="GrandItemsDiscountTotal" type="xs:unsignedByte" minOccurs="0" />
+                            <xs:element name="GrandItemsTotal" type="xs:unsignedByte" minOccurs="0" />
+                            <xs:element name="GrandOrdersDiscountTotal" type="xs:unsignedByte" minOccurs="0" />
+                            <xs:element name="GrandOrdersShippingDiscount" type="xs:unsignedByte" minOccurs="0" />
+                            <xs:element name="GrandShipping" type="xs:unsignedByte" minOccurs="0" />
+                            <xs:element name="GrandSubTotal" type="xs:unsignedByte" minOccurs="0" />
+                            <xs:element name="GrandTax" type="xs:unsignedByte" minOccurs="0" />
+                            <xs:element name="GrandTotal" type="xs:unsignedByte" minOccurs="0" />
+                            <xs:element name="OrderCollectionUUID" type="xs:string" minOccurs="0" />
+                            <xs:element name="Channel" type="xs:string" minOccurs="0" />
+                            <xs:element name="Order" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="StoreNumber" type="xs:string" minOccurs="0" />
+                                        <xs:element name="ShippingAddress" minOccurs="0">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="FirstName" type="xs:string" minOccurs="0" />
+                                                    <xs:element name="LastName" type="xs:string" minOccurs="0" />
+                                                    <xs:element name="CompanyName" minOccurs="0" />
+                                                    <xs:element name="EmailAddress" type="xs:string" minOccurs="0" />
+                                                    <xs:element name="AddressLine1" type="xs:string" minOccurs="0" />
+                                                    <xs:element name="AddressLine2" minOccurs="0" />
+                                                    <xs:element name="City" type="xs:string" minOccurs="0" />
+                                                    <xs:element name="State" type="xs:string" minOccurs="0" />
+                                                    <xs:element name="PhoneNumber" type="xs:unsignedLong" minOccurs="0" />
+                                                    <xs:element name="CountryCode" type="xs:string" minOccurs="0" />
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="OrderDiscountTotal" type="xs:unsignedByte" minOccurs="0" />
+                                        <xs:element name="OrderItemsDiscountTotal" type="xs:unsignedByte" minOccurs="0" />
+                                        <xs:element name="OrderItemsListPriceTotal" type="xs:decimal" minOccurs="0" />
+                                        <xs:element name="OrderItemsTotal" type="xs:decimal" minOccurs="0" />
+                                        <xs:element name="OrderShipping" type="xs:decimal" minOccurs="0" />
+                                        <xs:element name="OrderShippingDiscount" type="xs:unsignedByte" minOccurs="0" />
+                                        <xs:element name="OrderShippingRate" type="xs:decimal" minOccurs="0" />
+                                        <xs:element name="OrderSubTotal" type="xs:decimal" minOccurs="0" />
+                                        <xs:element name="OrderTax" type="xs:decimal" minOccurs="0" />
+                                        <xs:element name="OrderTotal" type="xs:decimal" minOccurs="0" />
+                                        <xs:element name="OrderUUID" type="xs:string" minOccurs="0" />
+                                        <xs:element name="SpeedFCShippingCode" minOccurs="0">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:enumeration value="SMRT" />
+                                                    <xs:enumeration value="FGHM" />
+                                                    <xs:enumeration value="USGA" />
+                                                    <xs:enumeration value="FEG" />
+                                                    <xs:enumeration value="FSP" />
+                                                    <xs:enumeration value="FXPX" />
+                                                    <xs:enumeration value="UPM" />
+                                                    <xs:enumeration value="PB1" />
+                                                    <xs:enumeration value="FDIP" />
+                                                    <xs:enumeration value="UFCM" />
+                                                    <xs:enumeration value="FEPO" />
+                                                    <xs:enumeration value="FEES" />
+                                                    <xs:enumeration value="FEGD" />
+                                                    <xs:enumeration value="FREIGHT" />
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element name="ResidentialFlag" type="xs:string" minOccurs="0" />
+                                        <xs:element name="Item" minOccurs="0" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="CategoryID" type="xs:unsignedByte" minOccurs="0" />
+                                                    <xs:element name="ItemTax" type="xs:decimal" minOccurs="0" />
+                                                    <xs:element name="ItemTaxPercentage" type="xs:decimal" minOccurs="0" />
+                                                    <xs:element name="ItemTaxTotal" type="xs:decimal" minOccurs="0" />
+                                                    <xs:element name="ItemDiscount" type="xs:unsignedByte" minOccurs="0" />
+                                                    <xs:element name="ItemDiscountQuantity" type="xs:unsignedByte" minOccurs="0" />
+                                                    <xs:element name="ItemDiscountTotal" type="xs:unsignedByte" minOccurs="0" />
+                                                    <xs:element name="ItemId" type="xs:unsignedInt" minOccurs="0" />
+                                                    <xs:element name="ItemListPrice" type="xs:decimal" minOccurs="0" />
+                                                    <xs:element name="ItemListPriceTotal" type="xs:decimal" minOccurs="0" />
+                                                    <xs:element name="ItemQuantity" type="xs:unsignedByte" minOccurs="0" />
+                                                    <xs:element name="ItemTotal" type="xs:decimal" minOccurs="0" />
+                                                    <xs:element name="ItemUUID" type="xs:string" minOccurs="0" />
+                                                    <xs:element name="Name" type="xs:string" minOccurs="0" />
+                                                    <xs:element name="Price" type="xs:decimal" minOccurs="0" />
+                                                    <xs:element name="ProductId" type="xs:unsignedInt" minOccurs="0" />
+                                                    <xs:element name="Sku" type="xs:unsignedInt" minOccurs="0" />
+                                                    <xs:element name="Style" type="xs:unsignedInt" minOccurs="0" />
+                                                    <xs:element name="TaxableFlag" type="xs:boolean" minOccurs="0" />
+                                                    <xs:element name="UPC" type="xs:string" minOccurs="0" />
+                                                    <xs:element name="DCNumber" type="xs:string" minOccurs="0" />
+                                                    <xs:element name="Presale" type="xs:boolean" minOccurs="0" />
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>]]></xml-module:schema-text>
+				</xml-module:schema-content>
+			</xml-module:schema-contents>
+		</xml-module:validate-schema>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="1788de02-fce7-4fb2-b9ed-b85d978bda33" >
+				<foreach doc:name="For Each" doc:id="b9c15411-24f3-4479-b80b-114854c1e470" collection="#[error.errorMessage.payload]">
+					<set-variable doc:name="Set Variable" doc:id="326a3b42-fc9c-4a85-b4c5-4945eb15557a" variableName="validationError" value="#[vars.validationError ++ 'At line: ' ++ payload.lineNumber ++ ', column: ' ++ payload.columnNumber ++ ' → ' ++ payload.description ++ '&#10;']"/>
+				</foreach>
+			</on-error-continue>
+		</error-handler>
+	</flow>
 </mule>

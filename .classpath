@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry kind="con" path="MULE_LIB/org.mule.modules/mule-xml-module/1.4.2"/>
 	<classpathentry kind="con" path="MULE_LIB/io.github.mulesoft-ai-chain-project/mule4-aichain-connector/1.2.0"/>
 	<classpathentry kind="con" path="MULE_LIB/com.files/mule-filescom-connector/1.0.0"/>
 	<classpathentry kind="con" path="MULE_LIB/org.mule.connectors/mule-sockets-connector/1.2.5"/>
