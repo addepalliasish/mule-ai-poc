@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
       xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain"
       xmlns:filescom="http://www.mulesoft.org/schema/mule/filescom"
       xmlns="http://www.mulesoft.org/schema/mule/core"
-      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/filescom http://www.mulesoft.org/schema/mule/filescom/current/mule-filescom.xsd
 http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
 
   <ms-aichain:config name="MuleSoft_AI_Chain_Config"
                      llmType="OPENAI"
@@ -23,7 +24,13 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
     <filescom:connection apiKey="326f8b626c7da25f721c9ae73823358626a50e7479f0edb45d56b98829c2e8fc" />
   </filescom:config>
 
-  <flow name="ai-trainFlow" doc:id="2a4f0669-1402-40c4-a2b3-0fba1aaebc53">
+  <file:config name="File_Config" doc:name="File Config" doc:id="94ad6c00-0536-4e56-b2bb-71f9c95f4bd8" />
+	<sub-flow name="sf-set-order-variable" doc:id="6c3a8827-30f5-4b43-806c-d16e3687569c" >
+		<set-variable value='#[%dw 2.0&#10;output application/java&#10;var doc = read(payload, "application/xml")&#10;---&#10;(doc.Orders.OrderCollection.OrderNumber default "") as String]' doc:name="Set OrderNumber" doc:id="2c6301af-a310-47b7-bba2-10630411e41f" variableName="OrderNumber" />
+		<set-variable value='#[%dw 2.0&#10;output application/java&#10;var doc = read(payload, "application/xml")&#10;---&#10;(doc.Orders.OrderCollection.OrderCode default "") as String]' doc:name="Set OrderCode" doc:id="5d00f3f8-814e-46f3-b521-e2658cbd5cf3" variableName="OrderCode" />
+		<set-variable value="#[payload]" doc:name="orderxml" doc:id="3888a36a-d09c-4e40-8dc2-d5b47f451946" variableName="orderxml" />
+	</sub-flow>
+	<flow name="ai-trainFlow" doc:id="2a4f0669-1402-40c4-a2b3-0fba1aaebc53">
     <scheduler doc:name="Scheduler" doc:id="de16773b-507d-4709-bcd0-9e86cb443ab5">
       <scheduling-strategy>
         <fixed-frequency frequency="5" timeUnit="MINUTES"/>
@@ -58,12 +65,9 @@ var xmlStr = (payload as Binary) as String {encoding: "UTF-8"}
 xmlStr replace /xsi:noNamespaceSchemaLocation="[^"]*"/ with ""]]></ee:set-payload>
 				</ee:message>
 			</ee:transform>
-			<set-variable value="#[payload]"
-                    doc:name="orderxml"
-                    doc:id="3888a36a-d09c-4e40-8dc2-d5b47f451946"
-                    variableName="orderxml"/>
 
-      <logger level="INFO"
+      <flow-ref doc:name="Set Variables" doc:id="dd12eac1-8fe5-4b1f-bcc2-822f8ec7fbf4" name="sf-set-order-variable"/>
+			<logger level="INFO"
               doc:name="Logger"
               doc:id="7d6b5f80-b820-4904-8b1b-33cd0a4e00f2"
               message="#[payload]"/>
@@ -93,7 +97,7 @@ xmlStr replace /xsi:noNamespaceSchemaLocation="[^"]*"/ with ""]]></ee:set-payloa
 ]]></ms-aichain:prompt>
 </ms-aichain:chat-answer-prompt>
 	
-      <ee:transform doc:name="Transform Message" doc:id="ccb07501-530a-40bb-b2e6-97a90e72746d" >
+      <ee:transform doc:name="Convert into JSON" doc:id="ccb07501-530a-40bb-b2e6-97a90e72746d" >
 				<ee:message >
 					<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -112,6 +116,28 @@ obj update {
               doc:name="Logger"
               doc:id="9f90b227-07c3-4e62-91af-87dedde8ddfe"
               message="#[payload]" />
+			<ee:transform doc:name="Transform Message" doc:id="4ae7347e-4e76-4148-8e45-5fafa2144bf9" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output text/plain
+var orderNumber = (vars.orderNumber default "") as String
+var orderCode   = (vars.orderCode default "") as String
+var issues      = payload.issues default []
+---
+"Order Number: " ++ orderNumber ++ "\n" ++
+"FR Number: " ++ orderCode ++ "\n\n" ++
+(
+  if (sizeOf(issues) > 0)
+    (issues map (i) ->
+      "Reason: " ++ (i.element default "") ++ " : " ++ (i.message default "") ++ "(" ++ (i.value default "") ++ ")"
+    ) joinBy "\n\n"
+  else
+    "Reason: None"
+)
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<file:write doc:name="Write" doc:id="b3887fed-2de1-4654-9a50-bb291e0dd3bb" config-ref="File_Config" path='#["C:\Users\AAddepalli\OneDrive - Spencer Gifts LLC\Desktop\ErrorOrders\ErroredOrder_" ++ vars.OrderCode ++ ".txt"]'/>
 
     </foreach>
   </flow>
