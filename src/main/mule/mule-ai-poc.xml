@@ -51,7 +51,8 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
                     doc:id="c71480d9-3c3d-4878-abdc-dac1cc4a5ed3"
                     variableName="filePath"/>
 
-      <filescom:download-file doc:name="File - Download"
+      <set-variable value="#[payload.displayName]" doc:name="Set fileName" doc:id="0d94e5a5-e036-43ab-b044-98794be32ef8" variableName="fileName"/>
+			<filescom:download-file doc:name="File - Download"
                               doc:id="426e3737-58de-40ce-93a9-67aa244e3fbe"
                               config-ref="Files_com_Config"
                               path="#[vars.filePath]"/>
@@ -138,6 +139,7 @@ var issues      = payload.issues default []
 				</ee:message>
 			</ee:transform>
 			<file:write doc:name="Write" doc:id="b3887fed-2de1-4654-9a50-bb291e0dd3bb" config-ref="File_Config" path='#["C:\Users\AAddepalli\OneDrive - Spencer Gifts LLC\Desktop\ErrorOrders\ErroredOrder_" ++ vars.OrderCode ++ ".txt"]'/>
+			<filescom:move-file doc:name="File - Move" doc:id="919211e6-be29-4e0c-a9f8-b12a2f908762" config-ref="Files_com_Config" path="#[vars.filePath]" destination='#["/SFTP/Koerber/OMS/GPS/in/CUSTOMER_ORDER/Review/" ++ vars.fileName]'/>
 
     </foreach>
   </flow>
